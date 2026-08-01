@@ -1,4 +1,4 @@
-mod srv_resolver;
+pub mod resolver;
 
 use anyhow::{Context, Error, Result};
 use dashmap::DashMap;
@@ -170,7 +170,8 @@ impl Client {
     }
 
     pub async fn from_address(addr: &str) -> Result<Self> {
-        let resolved_addr = srv_resolver::resolve_server_address(addr).await?;
+        let auth: http::uri::Authority = addr.parse().context("Invalid server address")?;
+        let resolved_addr = resolver::resolve(&auth).await?;
         let stream = TcpStream::connect(resolved_addr).await?;
         Self::new(stream).await
     }
